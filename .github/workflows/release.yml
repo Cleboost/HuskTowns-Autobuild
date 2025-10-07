@@ -1,22 +1,12 @@
-# Builds, tests and publishes to a GitHub Release on push to main
-name: Build and Release on Main
+# Builds, tests and publishes to maven when a release is published
+name: Release Tests
 
 on:
   push:
-    branches:
-      - main
+    branches: master
 
 permissions:
-  contents: write # Nécessaire pour créer la release et téléverser le JAR
-  checks: write
-  
-env:
-  # Définir le nom du JAR (ajuster si le nom réel est différent, par ex. 'my-plugin-paper-*.jar')
-  # Le nom exact du fichier de sortie dépend de votre build.gradle.
-  # Nous utiliserons un wildcard dans le job.
-  JAR_FILE_PATH: "**/build/libs/*.jar"
-  RELEASE_NAME: "Build ${{ github.run_id }}"
-  RELEASE_TAG: "build-${{ github.run_id }}"
+  contents: write
 
 jobs:
   build:
@@ -24,55 +14,28 @@ jobs:
     steps:
       - name: 'Checkout for CI 🛎️'
         uses: actions/checkout@v4
-        
       - name: 'Set up JDK 21 📦'
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-          
       - name: 'Build with Gradle 🏗️'
         uses: gradle/gradle-build-action@v3
         with:
-          arguments: build # Fait 'build' et 'test'
-        # Suppression de l'env pour la publication Maven si vous ne voulez pas publier à chaque push.
-        
-      - name: 'Publish Test Report 📊'
-        uses: mikepenz/action-junit-report@v4
-        if: success() || failure() # Continue on failure
-        with:
-          report_paths: '**/build/test-results/test/TEST-*.xml'
-
-# --------------------------------------------------------------------------------------------------
-
-      - name: 'Find the Paper JAR Path 🔍'
-        id: find_jar
-        # Utilise un glob pour trouver le chemin exact du JAR généré pour Paper.
-        run: |
-          JAR_PATH=$(find . -path "${{ env.JAR_FILE_PATH }}" -print -quit)
-          echo "jar_path=$JAR_PATH" >> $GITHUB_OUTPUT
-        shell: bash
-        
-      - name: 'Create GitHub Release 🏷️'
-        id: create_release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ env.RELEASE_TAG }}
-          name: ${{ env.RELEASE_NAME }}
-          body: "Automated build from push to main.\nRun ID: ${{ github.run_id }}\nCommit: ${{ github.sha }}"
-          draft: false
-          prerelease: true
-          # Le JAR sera ajouté dans l'étape suivante, pas ici
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Token par défaut est suffisant
+          arguments: build
           
-      - name: 'Upload Paper JAR to Release ⏫'
-        uses: actions/upload-release-asset@v1
-        id: upload-asset
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            ## HuskTown - Build ${{ github.ref_name }}
+
+            **Build Date:** ${{ github.event.head_commit.timestamp }}
+          append_body: true
+          files: target/HuskTowns-Paper-${{ github.event.release.tag_name }}.jar
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.find_jar.outputs.jar_path }}
-          asset_name: ${{ env.RELEASE_NAME }}.jar # Nom du fichier dans la release
-          asset_content_type: application/java-archive
