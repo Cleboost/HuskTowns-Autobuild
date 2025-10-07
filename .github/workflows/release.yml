@@ -1,5 +1,4 @@
-# Builds, tests and publishes to maven when a release is published
-name: Release Tests
+name: Release
 
 on:
   push:
@@ -14,16 +13,18 @@ jobs:
     steps:
       - name: 'Checkout for CI 🛎️'
         uses: actions/checkout@v4
+        
       - name: 'Set up JDK 21 📦'
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
+
       - name: 'Build with Gradle 🏗️'
         uses: gradle/gradle-build-action@v3
         with:
           arguments: build
-          
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
@@ -34,7 +35,8 @@ jobs:
 
             **Build Date:** ${{ github.event.head_commit.timestamp }}
           append_body: true
-          files: target/HuskTowns-Paper-${{ github.event.release.tag_name }}.jar
+          #files: target/HuskTowns-Paper-${{ github.event.release.tag_name }}.jar
+          files: target/**/*.jar
           draft: false
           prerelease: false
         env:
