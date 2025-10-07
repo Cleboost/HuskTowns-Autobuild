@@ -28,10 +28,10 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
+          tag_name: ${{ github.run_id }}
+          name: Release ${{ github.run_id }}
           body: |
-            ## HuskTown - Build ${{ github.ref_name }}
+            ## HuskTown - Build ${{ github.run_id }}
 
             **Build Date:** ${{ github.event.head_commit.timestamp }}
           append_body: false
