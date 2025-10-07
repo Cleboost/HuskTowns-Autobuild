@@ -1,4 +1,4 @@
-name: Release
+name: AutoBuild
 
 on:
   push:
@@ -34,8 +34,7 @@ jobs:
             ## HuskTown - Build ${{ github.ref_name }}
 
             **Build Date:** ${{ github.event.head_commit.timestamp }}
-          append_body: true
-          #files: target/HuskTowns-Paper-${{ github.event.release.tag_name }}.jar
+          append_body: false
           files: target/**/*.jar
           draft: false
           prerelease: false
