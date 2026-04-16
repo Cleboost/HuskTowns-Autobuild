@@ -8,11 +8,12 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: autobuild-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
-    concurrency:
-       cancel-in-progress: true
-       group: build
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout for CI 🛎️"
