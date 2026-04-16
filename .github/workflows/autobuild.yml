@@ -10,6 +10,9 @@ permissions:
 
 jobs:
   build:
+    concurrency:
+       cancel-in-progress: true
+       group: build
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout for CI 🛎️"
